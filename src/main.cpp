@@ -22,7 +22,7 @@ class Array
             data[i] = o.data[i];
         }
     }
-    ~Array()
+    virtual ~Array()
     {
         delete[] data;
     }
@@ -39,25 +39,46 @@ class Array
         c = newC;
         data[size++] = t;
     }
-    void remove(int index)
-    {
-        for (int i = index; i < size - 1; i++)
-        {
-            data[i] = data[i + 1];
-        }
-        size--;
-    }
+    virtual void checkBound(int index) const = 0;
+    virtual void remove(int index) = 0;
     T& operator[](int index)
     {
+        checkBound(index);
         return data[index];
     }
     const T& operator[](int index) const
     {
+        checkBound(index);
         return data[index];
     }
     int getSize() const
     {
         return size;
+    }
+    Array<T>& operator=(const Array<T>& o)
+    {
+        if (this != &o)
+        {
+            delete[] data;
+            size = o.size;
+            c = o.c;
+            data = new T[c];
+            for (int i = 0; i < size; i++)
+            {
+                data[i] = o.data[i];
+            }
+        }
+        return *this;
+    }
+    int find(const T& t) const
+    {
+        for (int i = 0; i < size; i++)
+        {
+            if (data[i] == t)
+            {
+                return i;
+            }
+        }
     }
 };
 
@@ -90,40 +111,49 @@ class SortedArray : public Array<T>
         this->data[i] = t;
         this->size++;
     }
+    virtual void checkBound(int index) const override 
+    {
+        if (index < 0 || index >= this->size)
+        {
+            throw out_of_range("Index out of range");
+        }
+    }
+    virtual void remove(int index) override 
+    {
+        checkBound(index);
+        for (int i = index; i < this->size - 1; i++)
+        {
+            this->data[i] = this->data[i + 1];
+        }
+        this->size--;
+    }
 };
 
 int main()
 {
-    Array<int> arr;
-    arr.add(1);
-    arr.add(4);
+    SortedArray<int> arr;
+    arr.add(5);
     arr.add(2);
-    arr.add(6);
+    arr.add(1);
     arr.add(3);
+    arr.add(4);
 
+    cout << "Sorted array: ";
     for (int i = 0; i < arr.getSize(); i++)
     {
         cout << arr[i] << " ";
     }
     cout << endl;
 
-    arr.remove(3);
+    int sValue = 3;
+    int p = arr.find(sValue);
+    cout << "Element " << sValue << " found at index " << p << endl;
+
+    arr.remove(2);
+    cout << "After removing element at index 2: ";
     for (int i = 0; i < arr.getSize(); i++)
     {
         cout << arr[i] << " ";
-    }
-    cout << endl;
-
-    SortedArray<int> sortedArr;
-    sortedArr.add(1);
-    sortedArr.add(4);
-    sortedArr.add(2);
-    sortedArr.add(6);
-    sortedArr.add(3);
-
-    for (int i = 0; i < sortedArr.getSize(); i++)
-    {
-        cout << sortedArr[i] << " ";
     }
     cout << endl;
 }
